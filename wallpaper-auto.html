@@ -56,13 +56,13 @@ function roundRect(ctx, x, y, w, h, r) {
 ctx.fillStyle = BG;
 ctx.fillRect(0, 0, W, H);
 
-const cr = 22 * scale;
+const cr = 17 * scale;
 const hGap = cr * 2.6;
 const vGap = cr * 2.35;
 const gridW = (COLUMNS - 1) * hGap;
 const gridH = (ROWS - 1) * vGap;
 const startX = (W - gridW) / 2;
-const startY = (H - gridH) / 2 + 30 * scale;
+const startY = (H - gridH) / 2 + 120 * scale;
 
 // Year label
 ctx.save();

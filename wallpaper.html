@@ -257,7 +257,7 @@ function renderWallpaper(canvas, width, height) {
   ctx.fillStyle = BG_COLOR;
   ctx.fillRect(0, 0, width, height);
 
-  const circleRadius = 22 * scale;
+  const circleRadius = 17 * scale;
   const hGap = circleRadius * 2.6;
   const vGap = circleRadius * 2.35;
 
@@ -265,7 +265,7 @@ function renderWallpaper(canvas, width, height) {
   const gridW = (COLUMNS - 1) * hGap;
   const gridH = (ROWS - 1) * vGap;
   const startX = (width - gridW) / 2;
-  const startY = (height - gridH) / 2 + 30 * scale;
+  const startY = (height - gridH) / 2 + 120 * scale;
 
   // ── Year Label ──
   ctx.save();
