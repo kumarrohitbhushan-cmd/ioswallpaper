@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Year in Days — Wallpaper Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #111;
+    color: #fff;
+    font-family: 'Inter', -apple-system, 'SF Pro Display', 'Segoe UI', sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    padding: 32px 16px;
+  }
+
+  h1 {
+    font-size: 22px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.85);
+    margin-bottom: 4px;
+  }
+
+  .subtitle {
+    font-size: 13px;
+    color: rgba(255,255,255,0.35);
+    margin-bottom: 28px;
+  }
+
+  .preview-frame {
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 44px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #0A0A0A;
+    padding: 6px;
+    box-shadow: 0 0 60px rgba(255,255,255,0.02);
+    margin-bottom: 28px;
+    width: 50vw;
+    max-width: 600px;
+  }
+
+  .preview-frame canvas {
+    border-radius: 40px;
+    width: 100%;
+    height: auto;
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+
+  /* Hidden full-res canvas for export */
+  #fullResCanvas { display: none; }
+
+  .controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 36px;
+    border: none;
+    border-radius: 999px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+
+  .btn:hover { opacity: 0.85; }
+
+  .btn-primary {
+    background: #34D399;
+    color: #000;
+  }
+
+  .btn-secondary {
+    background: rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.7);
+    font-size: 14px;
+    padding: 10px 24px;
+  }
+
+  .hint {
+    font-size: 11px;
+    color: rgba(255,255,255,0.2);
+    text-align: center;
+    max-width: 320px;
+    line-height: 1.5;
+  }
+
+  .settings {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .settings label {
+    font-size: 12px;
+    color: rgba(255,255,255,0.4);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: center;
+  }
+
+  .settings select, .settings input {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    color: #fff;
+    padding: 6px 10px;
+    font-size: 13px;
+    text-align: center;
+  }
+
+  .color-options {
+    display: flex;
+    gap: 8px;
+  }
+
+  .color-dot {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+
+  .color-dot:hover { transform: scale(1.15); }
+  .color-dot.active { border-color: #fff; transform: scale(1.15); }
+
+  .week-info {
+    font-size: 13px;
+    color: rgba(255,255,255,0.3);
+    margin-bottom: 8px;
+  }
+</style>
+</head>
+<body>
+
+<h1>Year in Days</h1>
+<p class="subtitle">365 dots · one per day · updates daily</p>
+
+<p class="week-info" id="weekInfo"></p>
+
+<div class="settings">
+  <label>
+    Accent Color
+    <div class="color-options" id="colorPicker">
+      <div class="color-dot active" data-color="#34D399" style="background:#34D399" title="Mint"></div>
+      <div class="color-dot" data-color="#4A9EFF" style="background:#4A9EFF" title="Blue"></div>
+      <div class="color-dot" data-color="#A78BFA" style="background:#A78BFA" title="Purple"></div>
+      <div class="color-dot" data-color="#F59E0B" style="background:#F59E0B" title="Orange"></div>
+      <div class="color-dot" data-color="#F87171" style="background:#F87171" title="Red"></div>
+      <div class="color-dot" data-color="#FFFFFF" style="background:#FFFFFF" title="White"></div>
+    </div>
+  </label>
+  <label>
+    Device
+    <select id="deviceSelect">
+      <option value="1206x2622">iPhone 17 Pro</option>
+      <option value="1320x2868">iPhone 17 Pro Max</option>
+      <option value="1179x2556">iPhone 17 / 16 Pro</option>
+      <option value="1320x2868">iPhone 16 Pro Max</option>
+      <option value="1170x2532">iPhone 16 / 15</option>
+      <option value="1290x2796">iPhone 16 Plus / 15 Pro Max</option>
+      <option value="1179x2556">iPhone 15 Pro</option>
+      <option value="1284x2778">iPhone 14 Plus</option>
+      <option value="1170x2532">iPhone 14</option>
+      <option value="1125x2436">iPhone 13 mini / 12 mini</option>
+    </select>
+  </label>
+</div>
+
+<div class="preview-frame">
+  <canvas id="previewCanvas"></canvas>
+</div>
+
+<div class="controls">
+  <button class="btn btn-primary" onclick="downloadWallpaper()">
+    ⬇ Download Wallpaper
+  </button>
+</div>
+
+<p class="hint">
+  Download → Send to your iPhone (AirDrop / email / cloud) →<br>
+  Photos → Set as wallpaper in <strong>Settings → Wallpaper</strong>
+</p>
+
+<canvas id="fullResCanvas"></canvas>
+
+<script>
+// ─── Configuration ───
+let accentColor = '#34D399';
+const COLUMNS = 15;
+const ROWS = 25;
+const BG_COLOR = '#0A0A0A';
+
+// ─── Day Calculation ───
+function getDayOfYear(date) {
+  const start = new Date(date.getFullYear(), 0, 0);
+  const diff = date - start;
+  return Math.floor(diff / 86400000);
+}
+
+function isLeapYear(year) {
+  return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
+}
+
+const now = new Date();
+const currentYear = now.getFullYear();
+const TOTAL_DAYS = isLeapYear(currentYear) ? 366 : 365;
+const currentDay = getDayOfYear(now);
+
+document.getElementById('weekInfo').textContent =
+  `Day ${currentDay} of ${TOTAL_DAYS} · ${currentYear} · ${Math.round(currentDay / TOTAL_DAYS * 100)}% complete`;
+
+// ─── Color Picker ───
+document.getElementById('colorPicker').addEventListener('click', (e) => {
+  const dot = e.target.closest('.color-dot');
+  if (!dot) return;
+  document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
+  dot.classList.add('active');
+  accentColor = dot.dataset.color;
+  renderPreview();
+});
+
+document.getElementById('deviceSelect').addEventListener('change', renderPreview);
+
+// ─── Render Wallpaper ───
+function renderWallpaper(canvas, width, height) {
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+
+  const scale = width / 1179; // normalize to iPhone 15 Pro as base
+
+  // Background
+  ctx.fillStyle = BG_COLOR;
+  ctx.fillRect(0, 0, width, height);
+
+  const circleRadius = 22 * scale;
+  const hGap = circleRadius * 2.6;
+  const vGap = circleRadius * 2.35;
+
+  // Grid dimensions
+  const gridW = (COLUMNS - 1) * hGap;
+  const gridH = (ROWS - 1) * vGap;
+  const startX = (width - gridW) / 2;
+  const startY = (height - gridH) / 2 + 30 * scale;
+
+  // ── Year Label ──
+  ctx.save();
+  ctx.font = `200 ${100 * scale}px "Inter", -apple-system, "SF Pro Display", "Segoe UI", sans-serif`;
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.18)';
+  ctx.textAlign = 'center';
+  ctx.letterSpacing = `${12 * scale}px`;
+  ctx.fillText(String(currentYear), width / 2, startY - 120 * scale);
+
+  // ── Day Counter ──
+  ctx.font = `400 ${36 * scale}px "JetBrains Mono", "SF Mono", "Cascadia Code", monospace`;
+  ctx.fillStyle = hexToRGBA(accentColor, 0.5);
+  ctx.letterSpacing = `${4 * scale}px`;
+  ctx.fillText(`DAY ${currentDay} OF ${TOTAL_DAYS}`, width / 2, startY - 60 * scale);
+  ctx.restore();
+
+  // ── Circles ──
+  for (let row = 0; row < ROWS; row++) {
+    for (let col = 0; col < COLUMNS; col++) {
+      const weekNum = row * COLUMNS + col + 1;
+      if (weekNum > TOTAL_DAYS) continue;
+
+      const cx = startX + col * hGap;
+      const cy = startY + row * vGap;
+
+      if (weekNum < currentDay) {
+        // Passed — solid white
+        ctx.beginPath();
+        ctx.arc(cx, cy, circleRadius, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.82)';
+        ctx.fill();
+
+      } else if (weekNum === currentDay) {
+        // Current — accent with glow
+        // Outer glow
+        const gradient = ctx.createRadialGradient(cx, cy, circleRadius * 0.5, cx, cy, circleRadius * 3);
+        gradient.addColorStop(0, hexToRGBA(accentColor, 0.3));
+        gradient.addColorStop(1, hexToRGBA(accentColor, 0));
+        ctx.beginPath();
+        ctx.arc(cx, cy, circleRadius * 3, 0, Math.PI * 2);
+        ctx.fillStyle = gradient;
+        ctx.fill();
+
+        // Main dot
+        ctx.beginPath();
+        ctx.arc(cx, cy, circleRadius, 0, Math.PI * 2);
+        ctx.fillStyle = accentColor;
+        ctx.shadowColor = hexToRGBA(accentColor, 0.6);
+        ctx.shadowBlur = 14 * scale;
+        ctx.fill();
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
+
+      } else {
+        // Future — dim outline
+        ctx.beginPath();
+        ctx.arc(cx, cy, circleRadius, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+        ctx.lineWidth = Math.max(1, 1.2 * scale);
+        ctx.stroke();
+      }
+    }
+  }
+
+  // ── Progress Bar ──
+  const barY = startY + gridH + 60 * scale;
+  const barW = gridW + hGap * 0.4;
+  const barH = 3 * scale;
+  const barX = (width - barW) / 2;
+  const progress = Math.min(currentDay, TOTAL_DAYS) / TOTAL_DAYS;
+
+  // Track
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+  roundRect(ctx, barX, barY, barW, barH, barH / 2);
+  ctx.fill();
+
+  // Fill
+  ctx.fillStyle = hexToRGBA(accentColor, 0.4);
+  roundRect(ctx, barX, barY, barW * progress, barH, barH / 2);
+  ctx.fill();
+
+  // ── Percentage Label ──
+  const pct = Math.round(currentDay / TOTAL_DAYS * 100);
+  ctx.font = `300 ${28 * scale}px "JetBrains Mono", "SF Mono", "Cascadia Code", monospace`;
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+  ctx.textAlign = 'center';
+  ctx.fillText(`${pct}% complete`, width / 2, barY + 40 * scale);
+}
+
+// ─── Helpers ───
+function hexToRGBA(hex, alpha) {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+// ─── Preview ───
+function renderPreview() {
+  const preview = document.getElementById('previewCanvas');
+  const [w, h] = getDeviceSize();
+
+  // Display size — large, fills most of the screen
+  const displayW = Math.min(window.innerWidth * 0.50, 600);
+  const displayH = displayW * (h / w);
+
+  // Render at 3x display size for crystal clear supersampled output
+  const dpr = window.devicePixelRatio || 1;
+  const renderScale = Math.max(dpr, 3);
+  const renderW = Math.round(displayW * renderScale);
+  const renderH = Math.round(displayH * renderScale);
+
+  renderWallpaper(preview, renderW, renderH);
+
+  preview.style.width = displayW + 'px';
+  preview.style.height = displayH + 'px';
+}
+
+function getDeviceSize() {
+  const val = document.getElementById('deviceSelect').value;
+  const [w, h] = val.split('x').map(Number);
+  return [w, h];
+}
+
+// ─── Download ───
+function downloadWallpaper() {
+  const canvas = document.getElementById('fullResCanvas');
+  const [w, h] = getDeviceSize();
+  renderWallpaper(canvas, w, h);
+
+  const link = document.createElement('a');
+  link.download = `day-wallpaper-${currentYear}-d${currentDay}.png`;
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+}
+
+// ─── Init ───
+renderPreview();
+</script>
+
+</body>
+</html>
